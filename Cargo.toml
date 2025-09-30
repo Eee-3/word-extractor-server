@@ -1,6 +1,7 @@
 [package]
-name = "text-extractor-server"
+name = "word-extractor-server"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+opencv = "0.96.0"
