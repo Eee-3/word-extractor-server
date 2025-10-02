@@ -10,8 +10,13 @@ use opencv::{
 };
 use std::fs;
 use std::path::Path;
+use image::{RgbImage};
+use cv_convert::prelude::*;
+use opencv::core::AlgorithmHint;
+use opencv::imgproc::cvt_color;
+use paddle_ocr_rs::ocr_lite::OcrLite;
 
-fn main() -> Result<()> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let image = imgcodecs::imread("test/test.jpg", imgcodecs::IMREAD_COLOR)?;
     if image.empty() {
         println!("无法读取图片，请检查路径");
@@ -76,6 +81,39 @@ fn main() -> Result<()> {
     imgcodecs::imwrite("e/o.jpg", &image_with_boxes, &opencv::core::Vector::new())?;
     imgcodecs::imwrite("e/m.jpg", &mask_processed, &opencv::core::Vector::new())?;
     imgcodecs::imwrite("e/r.jpg", &result, &opencv::core::Vector::new())?;
+
+    println!("Initalizing OCR");
+    let mut ocr = OcrLite::new();
+    ocr.init_models(
+        "./models/ch_PP-OCRv5_mobile_det.onnx",
+        "./models/ch_ppocr_mobile_v2.0_cls_infer.onnx",
+        "./models/ch_PP-OCRv5_rec_mobile_infer.onnx",
+        2,
+    )?;
+
+    for (i,&rec) in sorted_merged_boxes.iter().enumerate(){
+        println!("{:?}", rec);
+        let cropped_image = Mat::roi(&image, rec)?;
+        let mut rgb_img =Mat::default();
+        cvt_color(&cropped_image, &mut rgb_img, imgproc::COLOR_BGR2RGB, 0,AlgorithmHint::ALGO_HINT_DEFAULT)?;
+        let image: RgbImage=rgb_img.try_to_cv()?;
+        image.save(format!("e/crop_{}_i.jpg",i))?;
+        let res = ocr.detect(
+            &image,
+            50,
+            1024,
+            0.5,
+            0.3,
+            1.6,
+            false,
+            false,
+        )?;
+        res.text_blocks.iter().for_each(|item| {
+            println!("text: ({}) score: ({})", item.text, item.text_score);
+        });
+
+
+    }
 
     Ok(())
 }

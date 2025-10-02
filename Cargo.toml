@@ -4,4 +4,16 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-opencv = "0.96.0"
+opencv = { version = "0.96.0", features = ["clang-runtime"] }
+paddle-ocr-rs = "0.6.1"
+image = "0.25.8"
+
+[dependencies.cv-convert]
+version = "0.27.0"
+git = "https://github.com/Eee-3/rust-cv-convert"
+branch = "fix-opencv-0.96"
+default-features = false
+features = ["image", "opencv"]
+
+[patch.crates-io]
+
