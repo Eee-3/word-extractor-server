@@ -1,6 +1,29 @@
-use opencv::core::{AlgorithmHint, Mat, Point, Rect, Scalar, Size, in_range};
+use opencv::core::{AlgorithmHint, Mat, Point, Rect, Scalar, Size, in_range, bitwise_and};
 use opencv::imgproc;
 use opencv::imgproc::{CHAIN_APPROX_SIMPLE, COLOR_BGR2HSV, RETR_EXTERNAL, cvt_color};
+
+
+
+pub fn detect_hl(image: &Mat) -> opencv::Result<Vec<Rect>, Box<dyn std::error::Error>> {
+    let mut hsv_image = convert_bgr_to_hsv(&image)?;
+
+    let mask = detect_color(&mut hsv_image)?;
+
+    //形态学处理
+    let mask_processed = process_mask(&mask)?;
+
+    let mut result = Mat::default();
+    bitwise_and(&image, &image, &mut result, &mask_processed)?;
+
+    // 查找轮廓
+    let boxes = find_contours(&mask_processed)?;
+
+    let merged_boxes = merge_boxes(boxes, 50.0, 20.0);
+
+    // 自上而下，从左到右”排序
+    let sorted_merged_boxes = sort_boxes(merged_boxes);
+    Ok(sorted_merged_boxes)
+}
 
 pub fn convert_bgr_to_hsv(image: &Mat) -> opencv::Result<Mat> {
     let mut hsv_image = Mat::default();
