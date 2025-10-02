@@ -1,10 +1,8 @@
-use opencv::core::{AlgorithmHint, Mat, Point, Rect, Scalar, Size, in_range, bitwise_and};
+use opencv::core::{AlgorithmHint, Mat, Point, Rect, Scalar, Size, bitwise_and, in_range};
 use opencv::imgproc;
 use opencv::imgproc::{CHAIN_APPROX_SIMPLE, COLOR_BGR2HSV, RETR_EXTERNAL, cvt_color};
 
-
-
-pub fn detect_hl(image: &Mat) -> opencv::Result<Vec<Rect>, Box<dyn std::error::Error>> {
+pub fn detect_hl(image: &Mat) -> opencv::Result<Vec<crate::models::rect::Rect>> {
     let mut hsv_image = convert_bgr_to_hsv(&image)?;
 
     let mask = detect_color(&mut hsv_image)?;
@@ -22,7 +20,10 @@ pub fn detect_hl(image: &Mat) -> opencv::Result<Vec<Rect>, Box<dyn std::error::E
 
     // 自上而下，从左到右”排序
     let sorted_merged_boxes = sort_boxes(merged_boxes);
-    Ok(sorted_merged_boxes)
+    Ok(sorted_merged_boxes
+        .into_iter()
+        .map(|r| crate::models::rect::Rect::from(r))
+        .collect())
 }
 
 pub fn convert_bgr_to_hsv(image: &Mat) -> opencv::Result<Mat> {

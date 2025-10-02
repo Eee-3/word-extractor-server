@@ -1,1 +1,5 @@
 /target
+/test/
+/models/
+/e/
+/.cargo/config.toml

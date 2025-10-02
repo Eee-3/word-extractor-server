@@ -8,6 +8,11 @@ opencv = { version = "0.96.0", features = ["clang-runtime"] }
 paddle-ocr-rs = "0.6.1"
 image = "0.25.8"
 base64 = "0.22.1"
+serde = { version = "1.0.228" ,features = ["derive"]}
+serde_json = { version = "1.0.145" }
+actix-web = { version = "4.11.0" }
+env_logger = "0.11.8"
+log = "0.4.28"
 
 [dependencies.cv-convert]
 version = "0.27.0"
